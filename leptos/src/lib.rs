@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 #![deny(missing_docs)]
 #![forbid(unsafe_code)]
 //! # About Leptos

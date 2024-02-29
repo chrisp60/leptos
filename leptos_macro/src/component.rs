@@ -498,6 +498,7 @@ impl ToTokens for Model {
             }
 
             impl #impl_generics ::leptos::DynAttrs for #props_name #generics #where_clause {
+                #[allow(unused_variables, unused_mut)]
                 fn dyn_attrs(mut self, v: Vec<(&'static str, ::leptos::Attribute)>) -> Self {
                     #dyn_attrs_props
                     self

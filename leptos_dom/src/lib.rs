@@ -1,3 +1,4 @@
+#![allow(warnings)]
 #![deny(missing_docs)]
 #![forbid(unsafe_code)]
 #![cfg_attr(feature = "nightly", feature(fn_traits))]

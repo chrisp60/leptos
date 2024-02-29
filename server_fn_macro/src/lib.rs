@@ -1,3 +1,4 @@
+#![allow(warnings)]
 #![cfg_attr(feature = "nightly", feature(proc_macro_span))]
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]

@@ -1,4 +1,4 @@
-//#![deny(missing_docs)]
+#![allow(warnings)]
 #![forbid(unsafe_code)]
 
 ////! # Leptos Server Functions
