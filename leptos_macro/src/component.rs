@@ -500,6 +500,7 @@ impl ToTokens for Model {
             impl #impl_generics ::leptos::DynAttrs for #props_name #generics #where_clause {
                 #[allow(unused_variables, unused_mut)]
                 fn dyn_attrs(mut self, v: Vec<(&'static str, ::leptos::Attribute)>) -> Self {
+                    #[allow(unused_variables, unused_mut)]
                     #dyn_attrs_props
                     self
                 }
@@ -513,11 +514,13 @@ impl ToTokens for Model {
             #[allow(non_snake_case, clippy::too_many_arguments, unused_variables, unused_mut)]
             #[allow(clippy::needless_lifetimes)]
             #tracing_instrument_attr
+            #[allow(non_snake_case, clippy::too_many_arguments, unused_variables, unused_mut)]
             #vis fn #name #impl_generics (
                 #props_arg
             ) #ret #(+ #lifetimes)*
             #where_clause
             {
+                #[allow(non_snake_case, clippy::too_many_arguments, unused_variables, unused_mut)]
                 #body
             }
         };
@@ -527,7 +530,7 @@ impl ToTokens for Model {
 }
 
 impl Model {
-    #[allow(clippy::wrong_self_convention)]
+    #[allow(clippy::wrong_self_convention, unused_mut)]
     pub fn is_transparent(mut self, is_transparent: bool) -> Self {
         self.is_transparent = is_transparent;
 
@@ -983,6 +986,7 @@ fn prop_names(props: &[Prop]) -> TokenStream {
         .map(|Prop { name, .. }| {
             // fields like mutability are removed because unneeded
             // in the contexts in which this is used
+            #[allow(warnings)]
             let ident = &name.ident;
             quote! { #ident, }
         })
