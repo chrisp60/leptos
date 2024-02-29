@@ -510,7 +510,7 @@ impl ToTokens for Model {
             #docs
             #[doc = ""]
             #component_fn_prop_docs
-            #[allow(non_snake_case, clippy::too_many_arguments)]
+            #[allow(non_snake_case, clippy::too_many_arguments, unused_variables, unused_mut)]
             #[allow(clippy::needless_lifetimes)]
             #tracing_instrument_attr
             #vis fn #name #impl_generics (
