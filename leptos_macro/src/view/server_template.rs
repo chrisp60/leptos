@@ -90,11 +90,13 @@ pub(crate) fn fragment_to_tokens_ssr(
         }
     });
 
+    let spanned_nodes = quote_spanned! {original_span=>
+        #(#nodes),*
+    };
+    let wrapped_nodes = quote! { ::std::vec![#spanned_nodes] };
     quote_spanned! {original_span=>
         {
-            ::leptos::Fragment::lazy(|| ::std::vec![
-                #(#nodes),*
-            ])
+            ::leptos::Fragment::lazy(|| #wrapped_nodes)
             #view_marker
         }
     }

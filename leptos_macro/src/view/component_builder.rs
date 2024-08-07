@@ -70,11 +70,10 @@ pub(crate) fn component_to_tokens(
                 })
                 .unwrap_or_else(|| quote! { #name });
 
-            let value = quote_spanned!(value.span()=> { #value });
+            let value = quote_spanned! {value.span()=> #value};
+            let name = quote_spanned! {name.span()=> #name};
 
-            quote_spanned! {attr.span()=>
-                .#name(#[allow(unused_braces)] #value)
-            }
+            quote! { .#name(#[allow(unused_braces)] {#value}) }
         });
 
     let items_to_bind = attrs
@@ -202,11 +201,10 @@ pub(crate) fn component_to_tokens(
             .span();
         let slot = Ident::new(&slot, span);
         let value = if values.len() > 1 {
-            quote_spanned! {span=>
-                ::std::vec![
-                    #(#values)*
-                ]
-            }
+            let inner = quote_spanned! {span=>
+                #(#values)*
+            };
+            quote! { ::std::vec! [#inner] }
         } else {
             values.remove(0)
         };
@@ -225,24 +223,16 @@ pub(crate) fn component_to_tokens(
         &#name
     };
 
-    let build = quote_spanned! {name.span()=>
-        .build()
-    };
-
-    let component_props_builder = quote_spanned! {name.span()=>
-        ::leptos::component_props_builder(#name_ref #generics)
-    };
-
     #[allow(unused_mut)] // used in debug
-    let mut component = quote_spanned! {node.span()=>
+    let mut component = quote! {
         ::leptos::component_view(
             #[allow(clippy::needless_borrows_for_generic_args)]
             #name_ref,
-            #component_props_builder
+            ::leptos::component_props_builder(#name_ref #generics)
                 #(#props)*
                 #(#slots)*
                 #children
-                #build
+                .build()
                 #dyn_attrs
                 #(#spread_bindings)*
         )
@@ -256,8 +246,11 @@ pub(crate) fn component_to_tokens(
     if events_and_directives.is_empty() {
         component
     } else {
-        quote_spanned! {node.span()=>
-            ::leptos::IntoView::into_view(#[allow(unused_braces)] {#component})
+        quote! {
+            ::leptos::IntoView::into_view(
+                #[allow(unused_braces)]
+                {#component}
+            )
             #(#events_and_directives)*
         }
     }

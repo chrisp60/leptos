@@ -79,21 +79,18 @@ pub(crate) fn fragment_to_tokens(
         quote! {}
     };
 
+    let spanned_nodes = quote_spanned! {original_span=> #(#nodes),*};
     let tokens = if lazy {
-        quote_spanned! {original_span=>
+        quote! {
             {
-                ::leptos::Fragment::lazy(|| ::std::vec![
-                    #(#nodes),*
-                ])
-                #view_marker
+                ::leptos::Fragment::lazy(|| ::std::vec![#spanned_nodes])
+                    #view_marker
             }
         }
     } else {
-        quote_spanned! {original_span=>
+        quote! {
             {
-                ::leptos::Fragment::new(::std::vec![
-                    #(#nodes),*
-                ])
+                ::leptos::Fragment::new(::std::vec![#spanned_nodes])
                 #view_marker
             }
         }
@@ -191,7 +188,7 @@ pub(crate) fn element_to_tokens(
                     /* proc_macro_error::emit_warning!(name.span(), "The view macro is assuming this is an HTML element, \
                     but it is ambiguous; if it is an SVG or MathML element, prefix with svg:: or math::"); */
                     quote! {
-                        ::leptos::leptos_dom::html::#name()
+                     ::leptos::leptos_dom::html::#name()
                     }
                 }
                 TagType::Html => {
@@ -340,14 +337,14 @@ pub(crate) fn element_to_tokens(
         let result = quote_spanned! {node.span()=> {
             #(#ide_helper_close_tag)*
             #name
-                #(#attrs)*
-                #(#bindings)*
-                #(#class_attrs)*
-                #(#style_attrs)*
-                #global_class_expr
-                #(#children)*
-                #view_marker
-            }
+            #(#attrs)*
+            #(#bindings)*
+            #(#class_attrs)*
+            #(#style_attrs)*
+            #global_class_expr
+            #(#children)*
+            #view_marker
+        }
         };
 
         // We need to move "allow" out of "quote_spanned" because it breaks hovering in rust-analyzer
@@ -479,9 +476,9 @@ pub(crate) fn attribute_to_tokens(
         {
             let span = node.key.span();
             proc_macro_error::emit_error!(span, "Combining a global class (view! { class = ... }) \
-            and a dynamic `class=` attribute on an element causes runtime inconsistencies. You can \
-            toggle individual classes dynamically with the `class:name=value` syntax. \n\nSee this issue \
-            for more information and an example: https://github.com/leptos-rs/leptos/issues/773")
+                and a dynamic `class=` attribute on an element causes runtime inconsistencies. You can \
+                toggle individual classes dynamically with the `class:name=value` syntax. \n\nSee this issue \
+                for more information and an example: https://github.com/leptos-rs/leptos/issues/773")
         };
 
         // all other attributes

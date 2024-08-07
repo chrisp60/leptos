@@ -168,11 +168,8 @@ pub(crate) fn slot_to_tokens(
             .span();
         let slot = Ident::new(&slot, span);
         let value = if values.len() > 1 {
-            quote_spanned! {span=>
-                ::std::vec![
-                    #(#values)*
-                ]
-            }
+            let wrapped = quote! { ::std::vec![#(#values)*] };
+            quote_spanned!(span=> #wrapped)
         } else {
             values.remove(0)
         };
