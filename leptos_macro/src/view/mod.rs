@@ -162,7 +162,9 @@ fn node_to_tokens(
         Node::Comment(_) => None,
         Node::Doctype(node) => {
             let value = node.value.to_string_best();
-            Some(quote! { ::leptos::tachys::html::doctype(#value) })
+            Some(quote_spanned! {node.span()=>
+                ::leptos::tachys::html::doctype(#value)
+            })
         }
         Node::Fragment(fragment) => fragment_to_tokens(
             &fragment.children,
