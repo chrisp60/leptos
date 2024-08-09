@@ -193,7 +193,7 @@ fn node_to_tokens(
 fn text_to_tokens(text: &LitStr) -> TokenStream {
     // on nightly, can use static string optimization
     if cfg!(feature = "nightly") {
-        quote! {
+        quote_spanned! {text.span()=>
             ::leptos::tachys::view::static_types::Static::<#text>
         }
     }
