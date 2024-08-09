@@ -224,26 +224,32 @@ pub(crate) fn element_to_tokens(
         for node in node.attributes() {
             match node {
                 NodeAttribute::Block(block) => {
-                    if let NodeBlock::ValidBlock(block) = block {
-                        match block.stmts.first() {
-                            Some(Stmt::Expr(
-                                Expr::Range(ExprRange {
-                                    start: None,
-                                    limits: RangeLimits::HalfOpen(_),
-                                    end: Some(end),
-                                    ..
-                                }),
-                                _,
-                            )) => {
-                                additions.push(quote! { #end });
-                            }
-                            _ => {
-                                additions.push(quote! { #block });
-                            }
-                        }
-                    } else {
-                        additions.push(quote! { #block });
-                    }
+                    let NodeBlock::ValidBlock(syn::Block { stmts, .. }) = block
+                    else {
+                        additions.push(quote_spanned! {block.span()=>
+                            .add_any_attr(#block)
+                        });
+                        continue;
+                    };
+
+                    let Some(Stmt::Expr(
+                        Expr::Range(ExprRange {
+                            start: None,
+                            limits: RangeLimits::HalfOpen(_),
+                            end: Some(end),
+                            ..
+                        }),
+                        _,
+                    )) = stmts.first()
+                    else {
+                        additions.push(quote_spanned! {block.span()=>
+                            .add_any_attr(#block)
+                        });
+                        continue;
+                    };
+                    additions.push(quote_spanned! {end.span()=>
+                        .add_any_attr(#end)
+                    });
                 }
                 NodeAttribute::Attribute(node) => {
                     if let Some(content) = attribute_absolute(node, true) {
@@ -254,7 +260,7 @@ pub(crate) fn element_to_tokens(
         }
         Some(quote! {
             (#(#attributes,)*)
-            #(.add_any_attr(#additions))*
+            #(#additions)*
         })
     } else {
         let tag = name.to_string();
