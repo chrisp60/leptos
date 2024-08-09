@@ -210,8 +210,9 @@ pub(crate) fn component_to_tokens(
                 items_to_bind.iter().map(|ident| quote! { #ident, });
 
             let clonables = items_to_clone.iter().map(|ident| {
-                let ident_ref = quote_spanned!(ident.span()=> &#ident);
-                quote! { let #ident = ::core::clone::Clone::clone(#ident_ref); }
+                quote_spanned! {ident.span()=>
+                    let #ident = ::core::clone::Clone::clone(&#ident);
+                }
             });
 
             if bindables.len() > 0 {
