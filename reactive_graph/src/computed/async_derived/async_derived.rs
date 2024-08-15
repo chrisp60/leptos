@@ -6,7 +6,7 @@ use crate::{
     },
     owner::{FromLocal, LocalStorage, Storage, StoredValue, SyncStorage},
     signal::guards::{AsyncPlain, ReadGuard},
-    traits::{DefinedAt, Dispose, ReadUntracked},
+    traits::{DefinedAt, Dispose, ReadUntracked, With},
     unwrap_signal,
 };
 use core::fmt::Debug;
@@ -159,6 +159,47 @@ where
                 ArcAsyncDerived::new_with_initial(initial_value, fun),
             ),
         }
+    }
+
+    /// Returns an [`Option`] of applying a function to the value within the [`AsyncDerived`].
+    ///
+    /// [`None`] is returned when the future has not yet been completed.
+    ///
+    /// ```rust
+    /// # use reactive_graph::computed::*;
+    /// # use reactive_graph::signal::*;
+    /// # use reactive_graph::prelude::*;
+    /// # tokio_test::block_on(async move {
+    /// # any_spawner::Executor::init_tokio();
+    /// # let _guard = reactive_graph::diagnostics::SpecialNonReactiveZone::enter();
+    ///
+    /// // Each dog deserves at least 2 treats, but we have to drive to the treats store.
+    /// let dogs = RwSignal::new(1);
+    ///
+    /// async fn drive_to_treats_store() {
+    ///     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    /// }
+    ///
+    /// let treats = AsyncDerived::new(move || async move {
+    ///     let dog_count = dogs.get();
+    ///     drive_to_treats_store().await;
+    ///     dog_count * 2
+    /// });
+    ///
+    /// let one = treats.map(|count| format!("{count} treats!"));
+    /// assert_eq!(one, None);
+    /// tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+    /// let two = treats.map(|count| format!("{count} treats!"));
+    /// assert_eq!(two.as_deref(), Some("2 treats!"));
+    ///
+    /// # })
+    /// ```
+    pub fn map<O>(&self, f: impl Fn(&T) -> O + 'static) -> Option<O>
+    where
+        T: Send + Sync + 'static,
+        O: 'static,
+    {
+        self.with(|value| value.as_ref().map(f))
     }
 }
 
