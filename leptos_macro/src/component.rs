@@ -140,6 +140,25 @@ impl ToTokens for Model {
         let props_serialized_name = format_ident!("{name}PropsSerialized");
         let trace_name = format!("<{name} />");
 
+        if let Some(bad_ident_children) = is_island
+            .then(|| {
+                props.iter().find(|prop| {
+                    (prop.ty == parse_quote!(Children))
+                        && (prop.name.ident != "children")
+                })
+            })
+            .flatten()
+        {
+            proc_macro_error::emit_error!(
+                bad_ident_children.name.ident,
+                "`#[island]` props of type `Children` must be named \
+                 `children`. You may also be shadowing the `leptos` type \
+                 `Children`, this is currently not supported. Expected \
+                 `children` but found {}",
+                bad_ident_children.name.ident,
+            );
+        }
+
         let is_island_with_children = *is_island
             && props.iter().any(|prop| prop.name.ident == "children");
         let is_island_with_other_props = *is_island
