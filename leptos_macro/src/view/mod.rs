@@ -765,44 +765,42 @@ pub(crate) fn element_to_tokens(
         let mut ide_helper_close_tag = IdeTagHelper::new();
         let close_tag = node.close_tag.as_ref().map(|c| &c.name);*/
         let is_custom = is_custom_element(&tag);
-        let name = if is_custom {
+        let path_tail = if is_custom {
             // link custom ident to name span for IDE docs
             let custom = Ident::new("custom", name_span);
-            quote! { ::leptos::tachys::html::element::#custom(#node_name) }
+            quote! { html::element::#custom(#node_name) }
         } else if is_svg_element(&tag) {
             parent_type = TagType::Svg;
             if let "use" | "use_" = tag.as_str() {
                 let raw_use_name = Ident::new_raw("use", name_span);
-                quote! { ::leptos::tachys::svg::#raw_use_name() }
+                quote! { svg::#raw_use_name() }
             } else {
-                quote! { ::leptos::tachys::svg::#node_name() }
+                quote! { svg::#node_name() }
             }
         } else if is_math_ml_element(&tag) {
             parent_type = TagType::Math;
-            quote! { ::leptos::tachys::mathml::#node_name() }
+            quote! { mathml::#node_name() }
         } else if is_ambiguous_element(&tag) {
             match parent_type {
                 TagType::Unknown => {
                     // We decided this warning was too aggressive, but I'll leave it here in case we want it later
                     /* proc_macro_error2::emit_warning!(name.span(), "The view macro is assuming this is an HTML element, \
                     but it is ambiguous; if it is an SVG or MathML element, prefix with svg:: or math::"); */
-                    quote! {
-                        ::leptos::tachys::html::element::#node_name()
-                    }
+                    quote! { html::element::#node_name() }
                 }
                 TagType::Html => {
-                    quote_spanned! { node.name().span() => ::leptos::tachys::html::element::#node_name() }
+                    quote! { html::element::#node_name() }
                 }
                 TagType::Svg => {
-                    quote_spanned! { node.name().span() => ::leptos::tachys::svg::#node_name() }
+                    quote! { svg::#node_name() }
                 }
                 TagType::Math => {
-                    quote_spanned! { node.name().span() => ::leptos::tachys::math::#node_name() }
+                    quote! { math::#node_name() }
                 }
             }
         } else {
             parent_type = TagType::Html;
-            quote_spanned! { node_name.span() => ::leptos::tachys::html::element::#node_name() }
+            quote! { html::element::#node_name() }
         };
 
         /* TODO restore this
@@ -858,7 +856,7 @@ pub(crate) fn element_to_tokens(
         // attributes are placed second because this allows `inner_html`
         // to object if there are already children
         Some(quote! {
-            #name
+            ::leptos::tachys::#path_tail
             #children
             #attributes
             #global_class_expr
