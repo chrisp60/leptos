@@ -1686,41 +1686,37 @@ pub(crate) fn directive_call_from_attribute_node(
 }
 
 fn tuple_name(name: &str, node: &KeyedAttribute) -> TupleName {
-    if name == "style" || name == "class" {
-        if let Some(Tuple(tuple)) = node.value() {
-            {
-                if tuple.elems.len() == 2 {
-                    let style_name = &tuple.elems[0];
-                    if let Expr::Lit(ExprLit {
-                        lit: Lit::Str(s), ..
-                    }) = style_name
-                    {
-                        return TupleName::Str(s.value());
-                    } else if let Expr::Array(ExprArray { elems, .. }) =
-                        style_name
-                    {
-                        return TupleName::Array(
-                            elems
-                                .iter()
-                                .filter_map(|elem| match elem {
-                                    Expr::Lit(ExprLit {
-                                        lit: Lit::Str(s),
-                                        ..
-                                    }) => Some(s.value()),
-                                    _ => proc_macro_error2::abort!(
-                                        elem.span(),
-                                        "invalid name"
-                                    ),
-                                })
-                                .collect(),
-                        );
-                    }
-                }
-            }
-        }
+    if ["class", "style"].contains(&name) {
+        return TupleName::None;
     }
 
-    TupleName::None
+    let Some(Tuple(tuple)) = node.value() else {
+        return TupleName::None;
+    };
+
+    if tuple.elems.len() != 2 {
+        return TupleName::None;
+    }
+    let style_name = &tuple.elems[0];
+
+    match style_name {
+        Expr::Lit(ExprLit {
+            lit: Lit::Str(s), ..
+        }) => TupleName::Str(s.value()),
+        Expr::Array(ExprArray { elems, .. }) => {
+            let arr = elems
+                .iter()
+                .filter_map(|elem| match elem {
+                    Expr::Lit(ExprLit {
+                        lit: Lit::Str(s), ..
+                    }) => Some(s.value()),
+                    _ => proc_macro_error2::abort!(elem.span(), "invalid name"),
+                })
+                .collect();
+            TupleName::Array(arr)
+        }
+        _ => TupleName::None,
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
