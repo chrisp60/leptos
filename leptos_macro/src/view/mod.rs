@@ -703,7 +703,9 @@ pub(crate) fn element_to_tokens(
         }
     }
 
-    let name = node.name();
+    let node_name = node.name();
+    let name_span = node.name().span();
+
     if is_component_node(node) {
         if let Some(slot) = get_slot(node) {
             let slot = slot.clone();
@@ -757,51 +759,50 @@ pub(crate) fn element_to_tokens(
             #(.add_any_attr(#additions))*
         })
     } else {
-        let tag = name.to_string();
+        let tag = node_name.to_string();
         // collect close_tag name to emit semantic information for IDE.
         /* TODO restore this
         let mut ide_helper_close_tag = IdeTagHelper::new();
         let close_tag = node.close_tag.as_ref().map(|c| &c.name);*/
         let is_custom = is_custom_element(&tag);
         let name = if is_custom {
-            let name = node.name();
             // link custom ident to name span for IDE docs
-            let custom = Ident::new("custom", name.span());
-            quote! { ::leptos::tachys::html::element::#custom(#name) }
+            let custom = Ident::new("custom", name_span);
+            quote! { ::leptos::tachys::html::element::#custom(#node_name) }
         } else if is_svg_element(&tag) {
             parent_type = TagType::Svg;
-            let name = if tag == "use" || tag == "use_" {
-                Ident::new_raw("use", name.span()).to_token_stream()
+            if let "use" | "use_" = tag.as_str() {
+                let raw_use_name = Ident::new_raw("use", name_span);
+                quote! { ::leptos::tachys::svg::#raw_use_name() }
             } else {
-                name.to_token_stream()
-            };
-            quote_spanned! { node.name().span() => ::leptos::tachys::svg::#name() }
+                quote! { ::leptos::tachys::svg::#node_name() }
+            }
         } else if is_math_ml_element(&tag) {
             parent_type = TagType::Math;
-            quote_spanned! { node.name().span() => ::leptos::tachys::mathml::#name() }
+            quote! { ::leptos::tachys::mathml::#node_name() }
         } else if is_ambiguous_element(&tag) {
             match parent_type {
                 TagType::Unknown => {
                     // We decided this warning was too aggressive, but I'll leave it here in case we want it later
                     /* proc_macro_error2::emit_warning!(name.span(), "The view macro is assuming this is an HTML element, \
                     but it is ambiguous; if it is an SVG or MathML element, prefix with svg:: or math::"); */
-                    quote_spanned! { node.name().span() =>
-                        ::leptos::tachys::html::element::#name()
+                    quote! {
+                        ::leptos::tachys::html::element::#node_name()
                     }
                 }
                 TagType::Html => {
-                    quote_spanned! { node.name().span() => ::leptos::tachys::html::element::#name() }
+                    quote_spanned! { node.name().span() => ::leptos::tachys::html::element::#node_name() }
                 }
                 TagType::Svg => {
-                    quote_spanned! { node.name().span() => ::leptos::tachys::svg::#name() }
+                    quote_spanned! { node.name().span() => ::leptos::tachys::svg::#node_name() }
                 }
                 TagType::Math => {
-                    quote_spanned! { node.name().span() => ::leptos::tachys::math::#name() }
+                    quote_spanned! { node.name().span() => ::leptos::tachys::math::#node_name() }
                 }
             }
         } else {
             parent_type = TagType::Html;
-            quote_spanned! { name.span() => ::leptos::tachys::html::element::#name() }
+            quote_spanned! { node_name.span() => ::leptos::tachys::html::element::#node_name() }
         };
 
         /* TODO restore this
