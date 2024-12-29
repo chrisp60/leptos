@@ -1064,7 +1064,8 @@ pub(crate) fn attribute_absolute(
                             let param = if let Some(value) = node.value() {
                                 quote!(#value)
                             } else {
-                                quote_spanned!(node.key.span()=> ().into())
+                                let unit = quote_spanned! {node.key.span()=> ()};
+                                quote!(#unit.into())
                             };
                             Some(
                                 quote! {
@@ -1677,7 +1678,8 @@ pub(crate) fn directive_call_from_attribute_node(
     let param = if let Some(value) = attr.value() {
         quote!(#value)
     } else {
-        quote_spanned!(attr.key.span()=> ().into())
+        let spanned_unit = quote_spanned! {attr.key.span()=> ()};
+        quote!(#spanned_unit.into())
     };
 
     quote! { .directive(#handler, #[allow(clippy::useless_conversion)] #param) }
