@@ -764,10 +764,10 @@ pub(crate) fn element_to_tokens(
         let close_tag = node.close_tag.as_ref().map(|c| &c.name);*/
         let is_custom = is_custom_element(&tag);
         let name = if is_custom {
-            let name = node.name().to_string();
+            let name = node.name();
             // link custom ident to name span for IDE docs
             let custom = Ident::new("custom", name.span());
-            quote_spanned! { node.name().span() => ::leptos::tachys::html::element::#custom(#name) }
+            quote! { ::leptos::tachys::html::element::#custom(#name) }
         } else if is_svg_element(&tag) {
             parent_type = TagType::Svg;
             let name = if tag == "use" || tag == "use_" {
