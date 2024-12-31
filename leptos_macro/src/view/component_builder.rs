@@ -3,7 +3,7 @@ use super::{
 };
 use crate::view::{attribute_absolute, utils::filter_prefixed_attrs};
 use proc_macro2::{Ident, TokenStream, TokenTree};
-use quote::{format_ident, quote, quote_spanned};
+use quote::{format_ident, quote};
 use rstml::node::{
     CustomNode, KeyedAttributeValue, NodeAttribute, NodeBlock, NodeElement,
     NodeName,
@@ -251,11 +251,7 @@ pub(crate) fn component_to_tokens(
             .span();
         let slot = Ident::new(&slot, span);
         let value = if values.len() > 1 {
-            quote! {
-                ::std::vec![
-                    #(#values)*
-                ]
-            }
+            quote! { ::std::vec![ #(#values)* ] }
         } else {
             values.remove(0)
         };
