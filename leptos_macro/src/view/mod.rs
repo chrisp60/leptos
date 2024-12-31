@@ -45,15 +45,7 @@ pub fn render_view(
     disable_inert_html: bool,
 ) -> Option<TokenStream> {
     let (base, should_add_view) = match nodes.len() {
-        0 => {
-            let span = Span::call_site();
-            (
-                Some(quote_spanned! {
-                    span => ()
-                }),
-                false,
-            )
-        }
+        0 => (Some(quote! {()}), false),
         1 => (
             node_to_tokens(
                 &mut nodes[0],

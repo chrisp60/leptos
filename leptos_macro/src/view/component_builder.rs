@@ -113,7 +113,7 @@ pub(crate) fn component_to_tokens(
                         _ => unreachable!(),
                     };
                     let ident1 = format_ident!("{ident}", span = span);
-                    return Some(quote_spanned! { span => #ident1 });
+                    return Some(quote! { #ident1 });
                 } else {
                     return None;
                 }
@@ -220,12 +220,11 @@ pub(crate) fn component_to_tokens(
                 items_to_bind.iter().map(|ident| quote! { #ident, });
 
             let clonables = items_to_clone.iter().map(|ident| {
-                let ident_ref = quote_spanned!(ident.span()=> &#ident);
-                quote! { let #ident = ::core::clone::Clone::clone(#ident_ref); }
+                quote! { let #ident = ::core::clone::Clone::clone(&*#ident); }
             });
 
             if bindables.len() > 0 {
-                quote_spanned! {children.span()=>
+                quote! {
                     .children({
                         #(#clonables)*
 
@@ -233,10 +232,9 @@ pub(crate) fn component_to_tokens(
                     })
                 }
             } else {
-                quote_spanned! {children.span()=>
+                quote! {
                     .children({
                         #(#clonables)*
-
                         ::leptos::children::ToChildren::to_children(move || #children)
                     })
                 }
@@ -253,7 +251,7 @@ pub(crate) fn component_to_tokens(
             .span();
         let slot = Ident::new(&slot, span);
         let value = if values.len() > 1 {
-            quote_spanned! {span=>
+            quote! {
                 ::std::vec![
                     #(#values)*
                 ]
