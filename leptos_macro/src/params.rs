@@ -1,5 +1,4 @@
-use quote::{quote, quote_spanned};
-use syn::spanned::Spanned;
+use quote::quote;
 
 pub fn params_impl(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let name = &ast.ident;
@@ -13,15 +12,14 @@ pub fn params_impl(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             .named
             .iter()
             .map(|field| {
-				let field_name_string = &field.ident.as_ref().expect("expected named struct fields").to_string();
+				let field_name = field.ident.as_ref().expect("expected named struct fields");
 				let ident = &field.ident;
 				let ty = &field.ty;
-				let span = field.span();
 
-				quote_spanned! {
-					span=> #ident: <#ty as ::leptos_router::params::IntoParam>::into_param(
-                        map.get_str(#field_name_string),
-                        #field_name_string
+				quote! {
+					#ident: <#ty as ::leptos_router::params::IntoParam>::into_param(
+                        map.get_str(stringify!(#field_name)),
+                        #field_name
                     )?
 				}
 			})
