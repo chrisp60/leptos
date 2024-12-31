@@ -1056,8 +1056,8 @@ pub(crate) fn attribute_absolute(
                             let param = if let Some(value) = node.value() {
                                 quote!(#value)
                             } else {
-                                let unit = quote_spanned! {node.key.span()=> ()};
-                                quote!(#unit.into())
+                                let spanned_unit = quote_spanned! {node.key.span()=> ()};
+                                quote!(#spanned_unit.into())
                             };
                             Some(
                                 quote! {

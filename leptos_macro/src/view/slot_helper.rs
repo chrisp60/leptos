@@ -126,21 +126,20 @@ pub(crate) fn slot_to_tokens(
                 items_to_bind.iter().map(|ident| quote! { #ident, });
 
             let clonables = items_to_clone.iter().map(|ident| {
-                quote_spanned! {ident.span()=>
+                quote! {
                     let #ident = ::core::clone::Clone::clone(&#ident);
                 }
             });
 
             if bindables.len() > 0 {
-                quote_spanned! {children.span()=>
+                quote! {
                     .children({
                         #(#clonables)*
-
                         move |#(#bindables)*| #children #view_marker
                     })
                 }
             } else {
-                quote_spanned! {children.span()=>
+                quote! {
                     .children({
                         #(#clonables)*
 
@@ -172,17 +171,13 @@ pub(crate) fn slot_to_tokens(
         quote! { .#slot(#value) }
     });
 
-    let build = quote_spanned! {node.name().span()=>
-        .build()
-    };
-
-    let slot = quote_spanned! {node.span()=>
+    let slot = quote! {
         {
             let slot = #component_name::builder()
                 #(#props)*
                 #(#slots)*
                 #children
-                #build
+                .build()
                 #dyn_attrs;
 
             #[allow(unreachable_code, clippy::useless_conversion)]
