@@ -7,8 +7,8 @@
 //! This crate contains the implementation of the `server_fn` macro. [`server_macro_impl`] can be used to implement custom versions of the macro for different frameworks that allow users to pass a custom context from the server to the server function.
 
 use convert_case::{Case, Converter};
-use proc_macro2::{Literal, Span, TokenStream as TokenStream2};
-use quote::{format_ident, quote, quote_spanned, ToTokens};
+use proc_macro2::{Literal, TokenStream as TokenStream2};
+use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
@@ -374,7 +374,7 @@ pub fn server_macro_impl(
     let docs = body
         .docs
         .iter()
-        .map(|(doc, span)| quote_spanned!(*span=> #[doc = #doc]))
+        .map(|doc| quote!(#[doc = #doc]))
         .collect::<TokenStream2>();
 
     // auto-registration with inventory
@@ -1047,7 +1047,7 @@ struct ServerFnBody {
     pub output_arrow: Token![->],
     pub return_ty: syn::Type,
     pub block: TokenStream2,
-    pub docs: Vec<(String, Span)>,
+    pub docs: Vec<LitStr>,
 }
 
 impl Parse for ServerFnBody {
@@ -1081,15 +1081,13 @@ impl Parse for ServerFnBody {
                     return None;
                 }
 
-                let value = match &attr.value {
-                    syn::Expr::Lit(lit) => match &lit.lit {
-                        syn::Lit::Str(s) => Some(s.value()),
-                        _ => return None,
-                    },
-                    _ => return None,
+                let Expr::Lit(ExprLit {
+                    lit: Lit::Str(lit), ..
+                }) = &attr.value
+                else {
+                    return None;
                 };
-
-                Some((value.unwrap_or_default(), attr.path.span()))
+                Some(lit.clone())
             })
             .collect();
         attrs.retain(|attr| {
